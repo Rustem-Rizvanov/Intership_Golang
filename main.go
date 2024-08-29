@@ -8,7 +8,7 @@ import (
 )
 func main() {
 	// Инициализация Telegram бота
-	bot, err := tgbotapi.NewBotAPI("7259501029:AAE1XtlPeUwFjbX1C73QkVkBywEqoygZewQ")
+	bot, err := tgbotapi.NewBotAPI("TELEGRAM_API")
 	if err != nil {
 		log.Panic(err)
 	}
