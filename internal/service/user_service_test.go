@@ -18,7 +18,7 @@ func (db *MockUserDB) GetUserByTelegramID(telegramID int64) (*domain.User, error
 
 func TestCheckAndUpdateUserRequests(t *testing.T) {
 	db := &MockUserDB{}
-	userService := NewUserService(db) // Убедитесь, что NewUserService принимает MockUserDB
+	userService := NewUserService(db) 
 
 	currentTime := time.Now()
 	user := &domain.User{TelegramID: 12345, Requests: 5, LastReset: currentTime.Add(-30 * time.Minute)}
