@@ -1,18 +1,19 @@
 package service
 
 import (
-	"crypto/md5"
-	"encoding/hex"
-	"Golang_Intership/internal/domain"
+    "crypto/md5"
+    "encoding/hex"
 )
 
-type HashServiceImpl struct{}
+type HashService struct{}
 
-func NewHashService() domain.HashService {
-	return &HashServiceImpl{}
+func NewHashService() *HashService {
+    return &HashService{}
 }
 
-func (s *HashServiceImpl) FindMD5Hash(input string) string {
-	hash := md5.Sum([]byte(input))
-	return hex.EncodeToString(hash[:])
+func (s *HashService) HashMessage(message string) (string, error) {
+    hash := md5.New()
+    hash.Write([]byte(message))
+    hashed := hex.EncodeToString(hash.Sum(nil))
+    return hashed, nil
 }

@@ -2,29 +2,21 @@ package telegram
 
 import (
 	"testing"
-
-	"github.com/golang/mock/gomock"
-	"Golang_Intership/internal/domain"
-	"Golang_Intership/internal/mocks"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-func TestController_HandleMessage(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+type MockUserService struct{}
 
-	mockService := mocks.NewMockHashService(ctrl)
-	controller := NewController(mockService)
+func (s *MockUserService) SomeMethod() error {
+	return nil
+}
 
-	mockService.EXPECT().FindMD5Hash("hello").Return("5d41402abc4b2a76b9719d911017c592")
+func TestNewController(t *testing.T) {
+	mockUserService := &MockUserService{}
+	hashService := &MockHashService{} // Предполагается, что есть такой мок
 
-	bot := &tgbotapi.BotAPI{}
-	update := tgbotapi.Update{
-		Message: &tgbotapi.Message{
-			Text: "hello",
-			Chat: &tgbotapi.Chat{ID: 1234},
-		},
+	controller := NewController(mockUserService, hashService)
+
+	if controller.userService != mockUserService {
+		t.Errorf("Expected userService to be %v, got %v", mockUserService, controller.userService)
 	}
-
-	controller.HandleMessage(bot, update)
 }

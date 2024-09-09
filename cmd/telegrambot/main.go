@@ -2,29 +2,44 @@ package main
 
 import (
     "context"
+    "database/sql"
     "log"
     "os"
     "os/signal"
     "syscall"
     "time"
-
-    "github.com/joho/godotenv"
-    "Golang_Intership/config"
     "Golang_Intership/internal/service"
     "Golang_Intership/internal/telegram"
+    "Golang_Intership/config"
+    "github.com/joho/godotenv"
+    _ "github.com/lib/pq" // PostgreSQL driver
 )
 
 func main() {
-    // Загружаем переменные окружения из .env файла
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatalf("Error loading .env file")
+    // Загрузка конфигураций из .env файла
+    if err := godotenv.Load(); err != nil {
+        log.Fatalf("Error loading .env file: %v", err)
     }
 
+    // Загрузка конфигураций
     cfg := config.LoadConfig()
 
+    // Подключение к базе данных
+    db, err := sql.Open("postgres", cfg.PostgresURL)
+    if err != nil {
+        log.Fatalf("Error connecting to the database: %v", err)
+    }
+    defer db.Close()
+
+
+    // Инициализация сервисов
     hashService := service.NewHashService()
-    controller := telegram.NewController(hashService)
+    userService := service.NewUserService(db)
+
+    // Инициализация контроллера
+    controller := telegram.NewController(userService, hashService)
+
+    // Инициализация бота
     bot := telegram.NewBot(cfg.TelegramToken, controller)
 
     // Контекст для graceful shutdown
@@ -44,5 +59,5 @@ func main() {
     <-ctx.Done()
 
     log.Println("Bot has stopped")
-    time.Sleep(1 * time.Second) // ждем завершения всех горутин
+    time.Sleep(1 * time.Second) // Ждем завершения всех горутин
 }
