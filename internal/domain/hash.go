@@ -6,4 +6,5 @@ type HashRequest struct {
 
 type HashService interface {
 	FindMD5Hash(input string) string
+	CrackMD5Hash(hash string) string
 }

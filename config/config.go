@@ -3,23 +3,27 @@ package config
 import (
 	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	PostgresURL   string
 	TelegramToken string
+	PostgresURL   string
 }
 
 func LoadConfig() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file")
-	}
-
 	return &Config{
-		PostgresURL:   os.Getenv("POSTGRES_URL"),
-		TelegramToken: os.Getenv("TELEGRAM_TOKEN"),
+		TelegramToken: getEnv("TELEGRAM_TOKEN", ""),
+		PostgresURL:   getEnv("POSTGRES_URL", ""),
 	}
+}
+
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		if defaultValue == "" {
+			log.Fatalf("Environment variable %s not set", key)
+		}
+		return defaultValue
+	}
+	return value
 }
