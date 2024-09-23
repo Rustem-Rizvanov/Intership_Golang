@@ -13,13 +13,26 @@ func NewUserService(userRepo domain.UserRepository) *UserService {
     return &UserService{userRepo: userRepo}
 }
 
+func (s *UserService) CreateUser(user *domain.User) error {
+    return s.userRepo.CreateUser(user)
+}
+
+func (s *UserService) UpdateUser(user *domain.User) error {
+    return s.userRepo.UpdateUser(user) 
+}
+
+func (s *UserService) GetUserByTelegramID(telegramID int64) (*domain.User, error) {
+    return s.userRepo.GetUserByTelegramID(telegramID)
+}
+
+
+
 func (s *UserService) CheckAndUpdateUserRequests(telegramID int64, currentTime time.Time) (bool, error) {
     user, err := s.userRepo.GetUserByTelegramID(telegramID)
     if err != nil {
         return false, err
     }
 
-    // Если пользователь не найден, просим репозиторий создать его
     if user == nil {
         user = &domain.User{
             TelegramID: telegramID,

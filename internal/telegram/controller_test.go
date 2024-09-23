@@ -1,22 +1,22 @@
 package telegram
 
 import (
-	"testing"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "Golang_Intership/internal/mocks"
+    "Golang_Intership/internal/service"
 )
 
-type MockUserService struct{}
+// Пример теста для контроллера
+func TestUserController(t *testing.T) {
+    mockUserService := new(mocks.MockUserService)
+    controller := NewUserController(mockUserService)
 
-func (s *MockUserService) SomeMethod() error {
-	return nil
-}
+    // Пример теста
+    user := service.User{ID: 1, Name: "Test"}
+    mockUserService.On("GetUserByID", 1).Return(user, nil)
 
-func TestNewController(t *testing.T) {
-	mockUserService := &MockUserService{}
-	hashService := &MockHashService{} // Предполагается, что есть такой мок
-
-	controller := NewController(mockUserService, hashService)
-
-	if controller.userService != mockUserService {
-		t.Errorf("Expected userService to be %v, got %v", mockUserService, controller.userService)
-	}
+    fetchedUser, err := controller.GetUser(1)
+    assert.NoError(t, err)
+    assert.Equal(t, user, fetchedUser)
 }

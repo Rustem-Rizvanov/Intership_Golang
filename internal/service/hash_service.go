@@ -7,10 +7,16 @@ import (
     "sync"
 )
 
-type HashService struct{}
+type HashRepository interface {
+    Save(word string, hash string) error
+}
 
-func NewHashService() *HashService {
-    return &HashService{}
+type HashService struct {
+    repo HashRepository
+}
+
+func NewHashService(repo HashRepository) *HashService {
+    return &HashService{repo: repo}
 }
 
 func (s *HashService) HashMessage(message string) (string, error) {
@@ -20,6 +26,14 @@ func (s *HashService) HashMessage(message string) (string, error) {
         return "", err
     }
     return hex.EncodeToString(hash.Sum(nil)), nil
+}
+
+func (s *HashService) SaveWordHash(word string) error {
+    hash, err := s.HashMessage(word)
+    if err != nil {
+        return err
+    }
+    return s.repo.Save(word, hash)
 }
 
 func (s *HashService) BruteForceMD5(md5Hash string, maxLength int, charSet string) (string, error) {
@@ -95,4 +109,38 @@ func generateCombinations(charSet string, prefix string, length int) []string {
     }
 
     return results
+}
+
+func (s *HashService) HandleMessage(message string) (string, error) {
+    if isMD5Hash(message) {
+        crackedPassword, err := s.BruteForceMD5(message, 4, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+        if err != nil {
+            return "", err
+        }
+        return "Взломанный пароль: " + crackedPassword, nil
+    } else {
+        hashedMessage, err := s.HashMessage(message)
+        if err != nil {
+            return "", err
+        }
+
+        if saveErr := s.SaveWordHash(message); saveErr != nil {
+            return "", saveErr
+        }
+
+        return "Хэшированное сообщение: " + hashedMessage, nil
+    }
+}
+
+
+func isMD5Hash(s string) bool {
+    if len(s) != 32 {
+        return false
+    }
+    for _, c := range s {
+        if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+            return false
+        }
+    }
+    return true
 }

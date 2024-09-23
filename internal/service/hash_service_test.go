@@ -1,15 +1,28 @@
 package service
 
-import "testing"
+import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "Golang_Intership/internal/mocks"
+)
 
-func TestHashMessage(t *testing.T) {
-    service := NewHashService()
-    hashed, err := service.HashMessage("test")
-    if err != nil {
-        t.Errorf("Error hashing message: %v", err)
-    }
-    // Проверить ожидаемый хэш
-    if hashed == "" {
-        t.Errorf("Expected non-empty hash, got empty string")
-    }
+// MockUserRepository - мок для репозитория пользователя
+type MockUserRepository struct {
+    mock.Mock
+}
+
+// Пример метода, который может понадобиться в тестах
+func (m *MockUserRepository) Create(user domain.User) error {
+    args := m.Called(user)
+    return args.Error(0)
+}
+
+func TestHashService(t *testing.T) {
+    mockRepo := new(mocks.MockUserRepository)
+    hashService := NewHashService() // Замените на реальный конструктор
+
+    // Пример вызова метода
+    hashedPassword, err := hashService.HashPassword("password")
+    assert.NoError(t, err)
+    assert.NotEmpty(t, hashedPassword)
 }

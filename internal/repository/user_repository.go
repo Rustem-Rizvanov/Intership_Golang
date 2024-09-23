@@ -14,6 +14,13 @@ func NewUserRepository(db *sql.DB) *UserRepository {
     return &UserRepository{db: db}
 }
 
+func (r *UserRepository) UpdateUser(user *domain.User) error {
+    query := `UPDATE users SET chat_id = $1 WHERE telegram_id = $2`
+    _, err := r.db.Exec(query, user.ChatID, user.TelegramID)
+    return err
+}
+
+
 func (r *UserRepository) GetUserByTelegramID(telegramID int64) (*domain.User, error) {
     user := &domain.User{}
     query := `SELECT id, telegram_id, requests, last_reset FROM users WHERE telegram_id = $1`

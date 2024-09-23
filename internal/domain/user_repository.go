@@ -5,4 +5,5 @@ type UserRepository interface {
     CreateUser(user *User) error
     UpdateUserRequests(user *User) error
     ResetUserRequests(user *User) error
+	UpdateUser(user *User) error
 }

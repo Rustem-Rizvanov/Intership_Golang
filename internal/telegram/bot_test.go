@@ -1,23 +1,17 @@
 package telegram
 
 import (
-	"testing"
-	"Golang_Intership/internal/service"
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "Golang_Intership/internal/mocks"
+    "Golang_Intership/internal/service"
 )
 
-type MockController struct{}
+// Пример теста для бота
+func TestBot(t *testing.T) {
+    mockController := new(mocks.MockController)
+    bot := NewBot(mockController)
 
-func (c *MockController) HandleMessage(user *service.User, message string) (string, error) {
-	return "mock response", nil
+    // Пример теста
+    assert.Equal(t, mockController, bot.Controller)
 }
-
-func TestNewBot(t *testing.T) {
-	mockController := &MockController{}
-	token := "test-token"
-
-	bot := NewBot(token, mockController)
-	if bot.API == nil {
-		t.Fatal("Expected bot.API to be initialized")
-	}
-	if bot.Controller != mockController {
-		t.Errorf("Expected Controller to be %v, got %v", mock

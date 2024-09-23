@@ -1,0 +1,23 @@
+# Этап сборки
+FROM golang:1.23.0-alpine as builder
+
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o statistics_service cmd/statistics/main.go
+
+# Этап запуска
+FROM alpine:latest
+
+# Устанавливаем PostgreSQL клиент и необходимые библиотеки
+RUN apk add --no-cache postgresql-client libpq readline
+
+WORKDIR /root/
+COPY --from=builder /app/statistics_service .
+COPY .env .env
+
+# Открываем порты для API
+EXPOSE 5462
+
+CMD ["./statistics_service"]

@@ -1,20 +1,21 @@
 package config
 
 import (
-    "os"
-    "testing"
+	"os"
+	"testing"
 )
 
 func TestLoadConfig(t *testing.T) {
-    os.Setenv("POSTGRES_URL", "test_url")
-    os.Setenv("TELEGRAM_TOKEN", "test_token")
-    
-    cfg := LoadConfig()
+	// Установите переменные окружения для теста
+	os.Setenv("TELEGRAM_TOKEN", "test_token")
+	os.Setenv("POSTGRES_URL", "test_postgres_url")
 
-    if cfg.PostgresURL != "test_url" {
-        t.Errorf("Expected POSTGRES_URL to be 'test_url', got %s", cfg.PostgresURL)
-    }
-    if cfg.TelegramToken != "test_token" {
-        t.Errorf("Expected TELEGRAM_TOKEN to be 'test_token', got %s", cfg.TelegramToken)
-    }
+	cfg := LoadConfig()
+
+	if cfg.TelegramToken != "test_token" {
+		t.Errorf("Expected TelegramToken to be 'test_token', got %s", cfg.TelegramToken)
+	}
+	if cfg.PostgresURL != "test_postgres_url" {
+		t.Errorf("Expected PostgresURL to be 'test_postgres_url', got %s", cfg.PostgresURL)
+	}
 }

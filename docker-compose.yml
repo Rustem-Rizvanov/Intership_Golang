@@ -14,6 +14,59 @@ services:
     networks:
       - telegram_network
 
+  logging_db:
+    image: postgres:16.4
+    container_name: telegram_bot_logging_db
+    environment:
+      POSTGRES_DB: telegram_bot_logging
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - logging_db_data:/var/lib/postgresql/data
+    networks:
+      - telegram_network
+
+  hash_db:
+    image: postgres:16.4
+    container_name: telegram_bot_hash_db
+    environment:
+      POSTGRES_DB: telegram_bot_hash
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - hash_db_data:/var/lib/postgresql/data
+    networks:
+      - telegram_network
+
+  statistics_db:
+    image: postgres:16.4
+    container_name: telegram_bot_statistics_db
+    environment:
+      POSTGRES_DB: telegram_bot_statistics
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - statistics_db_data:/var/lib/postgresql/data
+      - ./docker/db/inits.sql:/docker-entrypoint-initdb.d/inits.sql
+      - ./docker/db/postgresql.conf:/etc/postgresql/postgresql.conf  # Путь к вашему файлу конфигурации
+  # Убедитесь, что путь к init.sql правильный
+    networks:
+      - telegram_network
+
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_service
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "15672:15672" # Management UI
+      - "5672:5672"   # RabbitMQ
+    networks:
+      - telegram_network
+
   bot:
     build:
       context: .
@@ -21,11 +74,31 @@ services:
     container_name: telegram_bot_service
     environment:
       TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
-      POSTGRES_URL: ${POSTGRES_URL}
+      POSTGRES_URL: ${POSTGRES_URL} # основная база данных
+      LOGGING_POSTGRES_URL: ${LOGGING_POSTGRES_URL} # база для логирования
+      HASH_POSTGRES_URL: ${HASH_POSTGRES_URL} # база для хэшей
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq_service:5672/
     depends_on:
       - db
+      - logging_db
+      - hash_db
+      - rabbitmq
     networks:
       - telegram_network
+
+  statistics_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.statistics
+    container_name: statistics_service
+    environment:
+      STATISTICS_POSTGRES_URL: ${STATISTICS_POSTGRES_URL} # база данных для статистики
+    depends_on:
+      - statistics_db
+    networks:
+      - telegram_network
+    ports:
+      - "5462:5462"
 
 networks:
   telegram_network:
@@ -33,3 +106,6 @@ networks:
 
 volumes:
   db_data:
+  logging_db_data:
+  hash_db_data:
+  statistics_db_data:

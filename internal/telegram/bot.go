@@ -37,16 +37,39 @@ func (b *Bot) Start() {
             continue
         }
 
-        user := &domain.User{TelegramID: int64(update.Message.From.ID)}
-        response, err := b.Controller.HandleMessage(user, update.Message.Text)
+        user := &domain.User{
+            TelegramID: int64(update.Message.From.ID),
+            ChatID:     int64(update.Message.Chat.ID),
+        }
+
+        existingUser, err := b.Controller.userService.GetUserByTelegramID(user.TelegramID)
         if err != nil {
-            log.Println("Error handling message:", err)
+            log.Println("Error fetching user:", err)
             continue
         }
 
-        msg := tgbotapi.NewMessage(update.Message.Chat.ID, response)
-        if _, err := b.API.Send(msg); err != nil {
-            log.Println("Failed to send message:", err)
+        if existingUser == nil {
+            err := b.Controller.userService.CreateUser(user)
+            if err != nil {
+                log.Println("Error creating user:", err)
+                continue
+            }
+        } else {
+            if existingUser.ChatID != user.ChatID {
+                existingUser.ChatID = user.ChatID
+                err := b.Controller.userService.UpdateUser(existingUser)
+                if err != nil {
+                    log.Println("Error updating user:", err)
+                }
+            }
+        }
+
+        message := update.Message.Text
+
+        err = b.Controller.messageService.SendMessage(user.TelegramID, message)
+        if err != nil {
+            log.Println("Error sending message to RabbitMQ:", err)
+            continue
         }
     }
 }
